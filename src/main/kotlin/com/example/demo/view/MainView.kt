@@ -47,13 +47,6 @@ class MainView : View("Quest Editor") {
             column("Slide Text", Slide::slideTextProperty).makeEditable()
             rowExpander(expandOnDoubleClick = true) {
                 paddingLeft = expanderColumn.width
-                button("Create New Option") {
-
-
-                        var tempOption = Branch(4,"", 1)
-                        it.branch.add(tempOption)
-
-                }
                 tableview(it.branch) {
                     column("Option ID", Branch::optionIdProperty).makeEditable()
                     column("Option Text", Branch::optionTextProperty).makeEditable()
@@ -73,6 +66,7 @@ class MainView : View("Quest Editor") {
                 slides.add(tempList)
             }
         }
+
         button("New File") {
             useMaxWidth = true
             textfield(input)
@@ -88,3 +82,10 @@ class MainView : View("Quest Editor") {
 class EditorController: Controller(){
     fun createFile(inputValue: String) = File(inputValue).createNewFile()
 }
+//        button("Create New Option") {
+//            action {
+//                iOption +=1
+//                val tempOption = Branch(iOption,"", 1)
+//                it.branch.add(tempOption)
+//            }
+//        }
