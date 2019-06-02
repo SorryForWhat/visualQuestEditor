@@ -39,6 +39,7 @@ var slides = mutableListOf(
                 Branch(3,"Example option №3",1)
         ).observable())
 ).observable()
+
 class MainView : View("Quest Editor") {
     override val root = hbox {
 
