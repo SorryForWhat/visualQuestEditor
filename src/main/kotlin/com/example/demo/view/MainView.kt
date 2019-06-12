@@ -74,7 +74,7 @@ class MainView : View("Quest Editor") {
                     useMaxWidth = true
                     action {
                         iTable += 1
-                        val tempList = Slide(iTable, "", listOf(
+                        val tempList = Slide(iTable, "", mutableListOf(
                                 Branch(1, "", 2)
                         ).observable())
                         slides.add(tempList)
