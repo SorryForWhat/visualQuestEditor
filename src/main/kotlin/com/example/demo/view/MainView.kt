@@ -18,6 +18,7 @@ var optionNum = 0
 var input = SimpleStringProperty()
 const val numCol: Int = 5
 var iTable = 2
+
 class Slide(slideId: Int, slideText: String, val branch: ObservableList<Branch>){
     var slideId by property(slideId)
     fun slideIdProperty() = getProperty(Slide::slideId)
@@ -26,6 +27,7 @@ class Slide(slideId: Int, slideText: String, val branch: ObservableList<Branch>)
     fun slideTextProperty() = getProperty(Slide::slideText)
 
 }
+
 class Branch(optionId: Int, optionText: String, optionAction: Int) {
     var optionId by property(optionId)
     fun optionIdProperty() = getProperty(Branch::optionId)
@@ -48,12 +50,8 @@ var slides = mutableListOf(
         ).observable())
 ).observable()
 
-
-
-
 class MainView : View("Quest Editor") {
     override val root = hbox {
-
         tableview(slides) {
             enableCellEditing()
             regainFocusAfterEdit()
@@ -84,11 +82,28 @@ class MainView : View("Quest Editor") {
                     useMaxWidth = true
                     textfield(slideTempId)
                     action {
-                        var optionSlideNum = slideTempId.value.split(" ")
-                        slideNum = optionSlideNum[0].toInt()
-                        optionNum = optionSlideNum[1].toInt()
-                        var tempOption = Branch(optionNum, "", 1)
-                        slides[slideNum - 1].branch.add(tempOption)
+                        if (slideTempId.value.isNullOrBlank()) {
+                            slideNum = slides.size
+                            optionNum = slides[slideNum - 1].branch.size + 1
+                            var tempOption = Branch(optionNum, "", 1)
+                            slides[slideNum - 1].branch.add(tempOption)
+                        } else {
+                            var optionSlideNum = slideTempId.value.split(" ")
+                            if (optionSlideNum.size != 2) {
+                                slideNum = slides.size
+                                optionNum = slides[slideNum - 1].branch.size + 1
+                                var tempOption = Branch(optionNum, "", 1)
+                                slides[slideNum - 1].branch.add(tempOption)
+                            } else {
+                                slideNum = optionSlideNum[0].toInt()
+                                optionNum = optionSlideNum[1].toInt()
+                                if (slideNum > slides.size) slideNum = slides.size
+                                if (slideNum < 1) slideNum = 1
+                                slides[slideNum - 1].branch.forEach { if (it.optionId == optionNum) optionNum = it.optionId + 1 }
+                                var tempOption = Branch(optionNum, "", 1)
+                                slides[slideNum - 1].branch.add(tempOption)
+                            }
+                        }
                     }
                 }
             }
@@ -97,19 +112,42 @@ class MainView : View("Quest Editor") {
                     useMaxWidth = true
                     textfield(removeSlideID)
                     action {
-                        var slideRemove = removeSlideID.value.toInt()
-                        slides.remove(slides[slideRemove - 1])
+                        iTable -= 1
+                        if (!removeSlideID.value.isNullOrBlank()) {
+                            var slideRemove = removeSlideID.value.toInt()
+                            if (slideRemove > slides.size) slideRemove = slides.size
+                            if (slideRemove < 1) slideRemove = 1
+                            slides.remove(slides[slideRemove - 1])
+                        } else {
+                            var slideRemove = slides.size
+                            slides.remove(slides[slideRemove - 1])
+                        }
                     }
                 }
                 button("Remove Option") {
                     useMaxWidth = true
                     textfield(slideTempIdRemove)
                     action {
-                        var optionSlideNumRemove = slideTempIdRemove.value.split(" ")
-                        slideNumRemove = optionSlideNumRemove[0].toInt()
-                        print(slideNumRemove)
-                        optionNumRemove = optionSlideNumRemove[1].toInt()
-                        slides[slideNumRemove - 1].branch.remove(slides[slideNumRemove - 1].branch[optionNumRemove - 1])
+                        if (slideTempId.value.isNullOrBlank()) {
+                            slideNumRemove = slides.size
+                            optionNumRemove = slides[slideNumRemove - 1].branch.size
+                            slides[slideNumRemove - 1].branch.remove(slides[slideNumRemove - 1].branch[optionNumRemove - 1])
+                        } else {
+                            var optionSlideNumRemove = slideTempIdRemove.value.split(" ")
+                            if (optionSlideNumRemove.size != 2) {
+                                slideNumRemove = slides.size
+                                optionNumRemove = slides[slideNumRemove - 1].branch.size
+                                slides[slideNumRemove - 1].branch.remove(slides[slideNumRemove - 1].branch[optionNumRemove - 1])
+                            } else {
+                                slideNumRemove = optionSlideNumRemove[0].toInt()
+                                optionNumRemove = optionSlideNumRemove[1].toInt()
+                                if (slideNumRemove > slides.size) slideNumRemove = slides.size
+                                if (slideNumRemove < 1) slideNumRemove = 1
+                                if (optionNumRemove > slides[slideNumRemove - 1].branch.size) optionNumRemove = slides[slideNumRemove - 1].branch.size
+                                if (optionNumRemove < 1) optionNumRemove = 1
+                                slides[slideNumRemove - 1].branch.remove(slides[slideNumRemove - 1].branch[optionNumRemove - 1])
+                            }
+                        }
                     }
                 }
             }
@@ -137,10 +175,11 @@ class MainView : View("Quest Editor") {
                                 "\n" +
                                 "    \"finishingId\" : ${slides.size}" +
                                 "\n" +
-                                "    \"slides\" : [\n" +
-                                "        {")
+                                "    \"slides\" : [")
                         for (i in 0 until slides.size) {
-                            writer.write("            \"slideId\" : ${slides[i].slideId},\n" +
+                            writer.write("\n        {" +
+                                    "\n" +
+                                    "            \"slideId\" : ${slides[i].slideId},\n" +
                                     "            \"text\" : ${slides[i].slideText},\n" +
                                     "            options : [")
                             for (k in 0 until slides[i].branch.size){
@@ -150,9 +189,11 @@ class MainView : View("Quest Editor") {
                                         "                    \"moveToSlide\" : ${slides[i].branch[k].optionAction}\n" +
                                         "                }")
                             }
-                            writer.write("            ]")
+                            writer.write("\n            ]" +
+                                    "\n" +
+                                    "        }")
                         }
-                        writer.write("    ]\n" +
+                        writer.write("\n    ]\n" +
                                 "}")
                         writer.close()
                     }
