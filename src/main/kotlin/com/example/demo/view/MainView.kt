@@ -6,6 +6,7 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import sun.applet.Main
 import tornadofx.*
+import java.awt.Button
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -20,7 +21,7 @@ class Slide(slideId: Int, slideText: String, val branch: ObservableList<Branch>)
     var slideText by property(slideText)
     fun slideTextProperty() = getProperty(Slide::slideText)
 
-     fun updateSlideModel(json: JsonObject){
+    fun updateSlideModel(json: JsonObject){
         with(json) {
             slideId = int("slideId")
             slideText = string("slideText")
@@ -85,12 +86,26 @@ class MainView : View("Quest Editor") {
             regainFocusAfterEdit()
             column("ID", Slide::slideIdProperty).makeEditable()
             column("Slide Text", Slide::slideTextProperty).fixedWidth(270).makeEditable()
+            column ("",Slide::slideIdProperty).cellFormat {
+                graphic = hbox(spacing = 5) {
+                    button("-").action {
+                        slides.remove(slides[Slide::slideId.toString().toInt() - 1])
+                    }
+                }
+            }
             rowExpander(expandOnDoubleClick = true) {
                 paddingLeft = expanderColumn.width
                 tableview(it.branch) {
                     column("Option ID", Branch::optionIdProperty).fixedWidth(70).makeEditable()
                     column("Option Text", Branch::optionTextProperty).fixedWidth(150).makeEditable()
                     column("Option Action", Branch::optionActionProperty).fixedWidth(70).makeEditable()
+                    column ("",Branch::optionIdProperty).cellFormat {
+                        graphic = hbox(spacing = 5) {
+                            button("-").action {
+                                slides[Slide::slideId.toString().toInt() - 1].branch.remove(slides[Slide::slideId.toString().toInt() - 1].branch[Branch::optionIdProperty.toString().toInt() - 1])
+                            }
+                        }
+                    }
                 }
             }
         }
